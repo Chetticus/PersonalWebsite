@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#080908" />
+  <meta name="description" content="Nguyen Hai Nam. Engineering, technology access, community, and analog sound. A personal collection, one record at a time." />
+  <title>Nguyen Hai Nam — Personal records</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+  <a class="skip-link" href="#introduction">Skip to introduction</a>
+  <nav id="record-index" aria-label="Record index" hidden></nav>
+  <main id="home">
+    <section id="opening" class="listening-section" aria-labelledby="opening-title">
+      <div class="opening-heading"><h1 id="opening-title">Nguyen Hai Nam</h1><p>Place my record on the turntable to begin.</p></div>
+      <div id="opening-scene" class="listening-scene" aria-label="Turntable on the left; draggable portrait record on the right"><div class="scene-hits"></div><div class="fallback-scene"><img class="portrait-image" alt=""/><p>The 3D scene is unavailable. You can still explore every story below.</p></div></div>
+      <div class="opening-bottom"><nav aria-label="Quick navigation"><a href="#introduction">Introduction</a><a href="#collection">Collection</a></nav><div class="placement-control"><button id="place-intro" class="place-action">Place on turntable <span>↗</span></button><p id="opening-status" class="scene-status" role="status">Nguyen Hai Nam · Introduction</p><a id="continue-intro" href="#introduction" hidden>Continue reading ↓</a></div></div>
+    </section>
+
+    <section id="introduction" aria-label="A few parts of my world">
+      <div class="introduction-line" aria-hidden="true"><span id="line-progress"></span></div>
+      <article class="checkpoint checkpoint-left" id="checkpoint-1"><span class="checkpoint-marker" aria-hidden="true"></span><div class="checkpoint-content"><figure class="portrait"><div class="portrait-surface" id="portrait-surface"><img class="portrait-image" alt="" /></div><figcaption id="portrait-caption"></figcaption></figure><h2 tabindex="-1"></h2><p></p></div></article>
+      <article class="checkpoint checkpoint-right" id="checkpoint-2"><span class="checkpoint-marker" aria-hidden="true"></span><div class="checkpoint-content"><h2></h2><p></p><svg class="building-sketch" viewBox="0 0 390 120" fill="none" aria-hidden="true"><path d="M2 97H88V59H164V20H280V96H382M88 59L121 26H244M164 20L198 4H313V80L280 96M280 20L313 4"/><circle cx="88" cy="97" r="4"/><circle cx="164" cy="59" r="4"/><circle cx="280" cy="20" r="4"/></svg></div></article>
+      <article class="checkpoint checkpoint-left" id="checkpoint-3"><span class="checkpoint-marker" aria-hidden="true"></span><div class="checkpoint-content"><h2></h2><p></p><a class="collection-invitation" href="#collection">A few parts of my world ↓</a></div></article>
+      <span class="line-end" aria-hidden="true"></span>
+    </section>
+
+    <section id="collection" class="listening-section" aria-labelledby="collection-title">
+      <div class="collection-heading"><h2 id="collection-title">Find a connection.</h2><p>Choose a record. Place it on the turntable.</p></div>
+      <div id="collection-scene" class="listening-scene" aria-label="Turntable on the left and eight draggable section records on the right"><div class="scene-hits"></div><div class="fallback-scene"><p>The 3D scene is unavailable. Select a story from the collection below.</p></div></div>
+      <div class="collection-bottom"><p id="collection-status" class="scene-status" role="status"></p><div class="record-info"><div><h3 id="active-title">Vinyl &amp; Sound</h3><p id="active-description"></p></div><button id="place-record" class="place-action">Place on turntable <span>↗</span></button></div></div>
+      <div id="record-list" class="record-list" aria-label="All eight sections"></div>
+      <nav class="collection-nav" aria-label="Collection navigation"><a href="#introduction">About me</a><button id="index-toggle" aria-expanded="false" aria-controls="record-index">Index</button><a href="/resume.html" target="_blank" rel="noopener">Résumé</a><button id="motion-toggle" aria-pressed="false">Reduce motion</button></nav>
+    </section>
+  </main>
+  <main id="detail" hidden></main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

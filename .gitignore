@@ -1,0 +1,9 @@
+node_modules/
+dist/
+research/resume.txt
+research/structure.csv
+research/turntable-reference.js
+research/turntable-animation-reference.js
+.sites-runtime/
+test-results/
+*.log
