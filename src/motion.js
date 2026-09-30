@@ -1,7 +1,9 @@
 // Milliseconds unless a property explicitly specifies a rate.
-export const MOTION = Object.freeze({ extraction:180, settle:620, return:430, spinUp:900, introductionPlay:2500, sectionPlay:700, autoScroll:1250, cover:480, lightDelay:500, lightReveal:900, hoverRate:12 });
+export const MOTION = Object.freeze({ extraction:180, settle:760, return:560, spinUp:900, introductionPlay:1500, sectionPlay:1200, autoScrollMove:1450, autoScrollPauses:Object.freeze([2750,1750,2250]), cover:480, lightDelay:500, lightReveal:900, hoverRate:12 });
 export const clamp = value => Math.max(0, Math.min(1, value));
 export const ease = value => {const t=clamp(value);return t*t*(3-2*t);};
+
+export const scrollEase = value => 1-(1-clamp(value))**4;
 
 // A scene exit clears the pending start rather than leaving a delayed callback behind.
 export class LightingReveal {
