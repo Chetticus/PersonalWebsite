@@ -1,6 +1,6 @@
 # Nguyen Hai Nam — Personal records
 
-Desktop prototype: place a portrait record → playback → three alternating introduction checkpoints → place one of eight section records → content page → restored collection. Local-only; no backend or accounts. Clicking sleeves selects; dragging or “Place on turntable” starts playback/navigation. Index and hash URLs provide direct access.
+Desktop prototype: place a portrait record → playback → a paced automatic journey through three alternating introduction checkpoints → place one of eight section records → content page → restored collection. Local-only; no backend or accounts. Clicking sleeves selects; dragging or “Place on turntable” starts playback/navigation. Index and hash URLs provide direct access.
 
 ```sh
 npm install
@@ -18,3 +18,5 @@ Open http://127.0.0.1:5173 on a desktop browser (1024px minimum; 1280–1920px r
 `AGENTS.md`, `ART_DIRECTION.md`, `MOTION.md`, `THIRD_PARTY_NOTICES.md`, and `QA.md` explain scope, design, behavior, attribution and validation.
 
 `src/motion.js` centralizes timing. `node scripts/check-motion.mjs` verifies the separate 500ms light delay, fade duration, cancellation, and reentry. Add `?graphics=off` to exercise the HTML fallback. The requested tkex reference has no identified reuse license, so the turntable is original geometry informed by its component layout; no source, models, or audio were copied.
+
+After portrait playback, each automatic move takes 1.45 seconds, with reading pauses of 2.75, 1.75, and 2.25 seconds. Scrolling manually in either direction stops it for that run. Both 3D scenes use matching enlarged framing.
