@@ -5,6 +5,7 @@ import { artURL } from './artwork.js';
 import { createTurntable,createVinyl } from './turntable.js';
 import { createCrateModel } from './crate.js';
 import { MOTION,ease } from './motion.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 export function createListeningScene(host,{opening=false,reduced=false,onSelect=()=>{},onState=()=>{},onComplete=()=>{}}={}){
   let renderer;
@@ -13,6 +14,10 @@ export function createListeningScene(host,{opening=false,reduced=false,onSelect=
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.30;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;host.prepend(renderer.domElement);renderer.domElement.setAttribute('aria-hidden','true');
   const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-8,8,4.5,-4.5,.1,80);camera.position.set(4,10,17);camera.lookAt(0,1,0);
+  // Broad studio reflections reveal machined edges without adding visible scenery.
+  const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment();
+  scene.environment=pmrem.fromScene(room,.04).texture;scene.environmentIntensity=.38;
+  room.dispose();pmrem.dispose();
   const ambient=new THREE.HemisphereLight(0xd7dbd1,0x3c2a1a,1.1);scene.add(ambient);
   const lamp=new THREE.SpotLight(0xffd9a9,200,40,.87,1,1.4);lamp.position.set(-4,9,5);lamp.target.position.set(0,0,0);lamp.castShadow=true;lamp.shadow.mapSize.set(1024,1024);lamp.shadow.normalBias=.055;lamp.shadow.bias=-.001;scene.add(lamp,lamp.target);
   const rim=new THREE.DirectionalLight(0xccc8b2,1.7);rim.position.set(4,6,-4);scene.add(rim);
@@ -26,12 +31,19 @@ export function createListeningScene(host,{opening=false,reduced=false,onSelect=
   const portraitCanvas=document.createElement('canvas');portraitCanvas.width=800;portraitCanvas.height=800;const pc=portraitCanvas.getContext('2d');pc.fillStyle='#77705b';pc.fillRect(0,0,800,800);
   const portraitTexture=new THREE.CanvasTexture(portraitCanvas);portraitTexture.colorSpace=THREE.SRGBColorSpace;
   const photo=new Image();photo.onload=()=>{const size=Math.min(photo.width,photo.height);pc.drawImage(photo,(photo.width-size)/2,(photo.height-size)/2,size,size,0,0,800,800);pc.fillStyle='#171a16';pc.fillRect(0,680,800,120);pc.fillStyle='#e9e4d9';pc.font='48px Georgia';pc.fillText('Nguyen Hai Nam',42,748);if(portrait.placeholder){pc.font='17px Arial';pc.fillStyle='#bcb8a8';pc.fillText('Portrait placeholder',44,778);}portraitTexture.needsUpdate=true;wake();};photo.src=portrait.src;
-  const table=createTurntable();table.root.position.set(-3.5,0,0);table.root.scale.setScalar(.85);scene.add(table.root);
-  const crate=createCrateModel(textures,wood);crate.root.position.set(opening?3.75:4.05,.08,opening?-.6:0);crate.root.scale.setScalar(opening?.62:.9);scene.add(crate.root);
+  const table=createTurntable();table.root.position.set(-3.8,0,0);table.root.scale.setScalar(.935);scene.add(table.root);
+  const crate=createCrateModel(textures,wood);crate.root.position.set(4.05,.08,0);crate.root.scale.setScalar(.9);scene.add(crate.root);
   if(opening)crate.sleeves.forEach(({mesh})=>new Set(mesh.material).forEach(m=>m.color.multiplyScalar(.45)));
-  const portraitSleeve=new THREE.Mesh(new THREE.BoxGeometry(3,3,.035),new THREE.MeshStandardMaterial({map:portraitTexture,roughness:.86}));portraitSleeve.position.set(2.1,1.95,2.2);portraitSleeve.rotation.y=-.16;portraitSleeve.castShadow=true;portraitSleeve.visible=opening;scene.add(portraitSleeve);
+  const portraitSleeve=new THREE.Mesh(new THREE.BoxGeometry(3,3,.035),new THREE.MeshStandardMaterial({map:portraitTexture,roughness:.86}));portraitSleeve.position.set(2.1,2.15,2.9);portraitSleeve.rotation.y=-.16;portraitSleeve.castShadow=true;portraitSleeve.visible=opening;scene.add(portraitSleeve);
   const portraitProxy=portraitSleeve.clone();portraitProxy.material=new THREE.MeshBasicMaterial({visible:false});scene.add(portraitProxy);
-  const vinyl=createVinyl(opening?portraitTexture:textures[0]);vinyl.root.scale.setScalar(.85);vinyl.root.visible=false;scene.add(vinyl.root);
+  const vinyl=createVinyl(opening?portraitTexture:textures[0]);vinyl.root.scale.setScalar(.935);vinyl.root.visible=false;scene.add(vinyl.root);
+  // One shared, low-contrast walnut surface gives both objects a common ground.
+  const deskMaterial=new THREE.MeshStandardMaterial({map:wood,color:0x160e09,roughness:.94,metalness:0,transparent:true,opacity:.62});
+  deskMaterial.onBeforeCompile=shader=>{
+    shader.vertexShader='varying vec3 deskPoint;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ndeskPoint=position;');
+    shader.fragmentShader='varying vec3 deskPoint;\n'+shader.fragmentShader.replace('#include <opaque_fragment>','#include <opaque_fragment>\ngl_FragColor.a *= (1.0-smoothstep(7.0,12.0,abs(deskPoint.x)))*(1.0-smoothstep(2.0,5.8,abs(deskPoint.z)));');
+  };
+  const desk=new THREE.Mesh(new THREE.BoxGeometry(24,.18,12),deskMaterial);desk.position.set(0,-.16,0);desk.receiveShadow=true;scene.add(desk);
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(50,40),new THREE.ShadowMaterial({opacity:.22}));floor.rotation.x=-Math.PI/2;floor.position.y=-.03;floor.receiveShadow=true;scene.add(floor);
   const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2(),proxies=opening?[portraitProxy]:crate.sleeves.map(s=>s.proxy),hits=host.querySelector('.scene-hits');
   const buttons=(opening?[{title:'Nguyen Hai Nam introduction'}]:records).map((r,i)=>{const b=document.createElement('button');b.className='sleeve-hit';b.setAttribute('aria-label',`Select ${r.title} record`);b.dataset.record=i;b.addEventListener('focus',()=>select(i));b.addEventListener('click',()=>select(i));hits.append(b);return b;});
@@ -65,9 +77,9 @@ export function createListeningScene(host,{opening=false,reduced=false,onSelect=
   renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();graphicsAvailable=false;reset();paused=true;host.classList.add('no-graphics');host.closest('section').classList.add('graphics-fallback');onState('fallback',active);});
   function bounds(mesh){scene.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(mesh),ps=[];for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z])ps.push(project(new THREE.Vector3(x,y,z)));const xs=ps.map(p=>p.x),ys=ps.map(p=>p.y);return {left:Math.min(...xs),top:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};}
   function positionHits(){const r=host.getBoundingClientRect();buttons.forEach((b,i)=>{const p=bounds(opening?portraitProxy:crate.sleeves[i].proxy);Object.assign(b.style,{left:`${p.left-r.left}px`,top:`${p.top-r.top}px`,width:`${p.width}px`,height:`${p.height}px`});});const target=project(targetPosition());host.dataset.platter=JSON.stringify({x:target.x-r.left,y:target.y-r.top});host.dataset.source=JSON.stringify(project(sourcePosition(active)));}
-  function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h);const width=Math.max(15.2,9.1*w/h),height=width*h/w;camera.left=-width/2;camera.right=width/2;camera.top=height/2;camera.bottom=-height/2;camera.updateProjectionMatrix();camera.updateMatrixWorld();positionHits();wake();}
+  function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h);const width=Math.max(14.8,7*w/h),height=width*h/w;camera.left=-width/2;camera.right=width/2;camera.top=height/2;camera.bottom=-height/2;camera.updateProjectionMatrix();camera.updateMatrixWorld();positionHits();wake();}
   function frame(now){raf=0;if(paused||!visible||document.hidden)return;const before=performance.now(),dt=Math.min((now-last)/1000||.016,.04);last=now;const a=isReduced?1:1-Math.exp(-MOTION.hoverRate*dt);let moving=0;
-    crate.sleeves.forEach(({pivot,base,disc},i)=>{const selected=!opening&&i===active;const targetY=base.y+(selected?.72:0),targetX=base.x+(opening?0:i===active?0:Math.sign(i-active)*.13),rx=selected?-.12:i>active?-.075:.1;for(const [axis,target]of [['y',targetY],['x',targetX]]){const d=target-pivot.position[axis];pivot.position[axis]+=d*a;moving+=Math.abs(d);}const d=rx-pivot.rotation.x;pivot.rotation.x+=d*a;moving+=Math.abs(d);disc.visible=!(vinyl.root.visible&&sequenceIndex===i&&!opening);});
+    crate.sleeves.forEach(({pivot,base,disc,highlight},i)=>{const selected=!opening&&i===active;const targetY=base.y+(selected?.9:0),targetX=base.x+(opening?0:i===active?0:Math.sign(i-active)*.20),rx=selected?-.16:i>active?-.075:.1;for(const [axis,target]of [['y',targetY],['x',targetX]]){const d=target-pivot.position[axis];pivot.position[axis]+=d*a;moving+=Math.abs(d);}highlight.material.opacity+=( (selected?.30:0)-highlight.material.opacity)*a;const d=rx-pivot.rotation.x;pivot.rotation.x+=d*a;moving+=Math.abs(d);disc.visible=!(vinyl.root.visible&&sequenceIndex===i&&!opening);});
     const elapsed=now-started;
     if(state==='dragging'){const t=isReduced?1:ease((now-extractionAt)/MOTION.extraction);vinyl.root.rotation.x=(1-t)*(drag?.rotationX??Math.PI/2);moving+=.1;}
     if(state==='returning'){const t=isReduced?1:ease(elapsed/MOTION.return);vinyl.root.position.lerpVectors(returnStart,sourcePosition(sequenceIndex),t);vinyl.root.rotation.x=THREE.MathUtils.lerp(settleRotation,Math.PI/2,t);moving+=1;if(t===1){vinyl.root.visible=false;table.halo.material.opacity=.08;setState('idle');}}
@@ -75,16 +87,17 @@ export function createListeningScene(host,{opening=false,reduced=false,onSelect=
     if(state==='spinning'||state==='playing'){
       if(state==='spinning')moving+=1; // Keep the short reduced-motion acknowledgement alive.
       if(!isReduced){spinSpeed=Math.min(1,spinSpeed+dt*1000/MOTION.spinUp);vinyl.root.rotation.y+=dt*3.49*ease(spinSpeed);table.platter.rotation.y=vinyl.root.rotation.y;moving+=1;}
-      const armTarget=-.44;const d=armTarget-table.arm.rotation.y;table.arm.rotation.y+=d*a;moving+=Math.abs(d);
+      const armTarget=-.44;const d=armTarget-table.arm.rotation.y;table.arm.rotation.y+=d*a;const lowered=ease((elapsed-200)/650);table.arm.rotation.x=isReduced?0:-.045*(1-lowered);moving+=Math.abs(d)+(!isReduced&&elapsed<850?.01:0);
       if(state==='spinning'&&elapsed>=(isReduced?140:opening?MOTION.introductionPlay:MOTION.sectionPlay)&&!notified){notified=true;setState('playing');onComplete(sequenceIndex);}
-    }else{const d=-table.arm.rotation.y;table.arm.rotation.y+=d*a;moving+=Math.abs(d);}
+    }else{const d=-table.arm.rotation.y;table.arm.rotation.y+=d*a;table.arm.rotation.x=!isReduced&&state==='settling'?-.045:0;moving+=Math.abs(d);}
     const quiet=['settling','spinning','playing'].includes(state),lightGoal=quiet?new THREE.Vector3(-4,9,5):targetLight;moving+=lamp.position.distanceTo(lightGoal);lamp.position.lerp(lightGoal,a);
+    scene.environmentIntensity=.05+.33*illumination;
     ambient.intensity=.32+1.05*illumination;lamp.intensity=20+180*illumination;rim.intensity=.2+1.5*illumination;destinationLight.intensity=state==='dragging'?18:6;
     renderer.render(scene,camera);sampleTimes.push(performance.now()-before);if(sampleTimes.length>180)sampleTimes.shift();const frames=Number(host.dataset.frames||0)+1;host.dataset.frames=frames;host.dataset.renderStats=JSON.stringify({frames,idle:moving<.002,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,cpuSubmitMedianMs:[...sampleTimes].sort((a,b)=>a-b)[Math.floor(sampleTimes.length/2)]});
     if(moving>.002)wake();
   }
   function wake(){if(!raf&&visible&&!paused&&!document.hidden)raf=requestAnimationFrame(frame);}
-  function reset(){pendingDrag=null;drag=null;vinyl.root.visible=false;spinSpeed=0;notified=false;table.arm.rotation.y=0;table.halo.material.opacity=.08;setState('idle');}
+  function reset(){pendingDrag=null;drag=null;vinyl.root.visible=false;spinSpeed=0;notified=false;table.arm.rotation.y=0;table.arm.rotation.x=0;table.halo.material.opacity=.08;setState('idle');}
   new ResizeObserver(resize).observe(host);
   new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;if(!visible){cancelAnimationFrame(raf);raf=0;if(['dragging','settling','spinning'].includes(state))reset();}else wake();},{threshold:0}).observe(host);
   document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;if(['dragging','settling','spinning'].includes(state))reset();}else wake();});
