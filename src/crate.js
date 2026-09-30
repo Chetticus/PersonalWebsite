@@ -17,7 +17,8 @@ export function createCrateModel(textures,woodTexture){
     const mesh=new THREE.Mesh(new THREE.BoxGeometry(3.18,3.18,.032),[edge,edge,edge,edge,front,edge]);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.index=i;pivot.add(mesh);
     const disc=new THREE.Mesh(new THREE.CylinderGeometry(1.48,1.48,.016,64),new THREE.MeshStandardMaterial({color:0x101512,metalness:.3,roughness:.32}));disc.rotation.x=Math.PI/2;disc.position.set(.15,.21,-.035);pivot.add(disc);
     const proxy=new THREE.Mesh(new THREE.BoxGeometry(3.18,3.18,.05),new THREE.MeshBasicMaterial({visible:false}));proxy.position.copy(base);proxy.rotation.y=-.12;proxy.userData.index=i;root.add(proxy);
-    sleeves.push({pivot,base,mesh,proxy,disc});
+    const highlight=new THREE.Mesh(new THREE.BoxGeometry(3.16,.018,.037),new THREE.MeshBasicMaterial({color:0xf4dcb0,transparent:true,opacity:0,depthWrite:false}));highlight.position.y=1.59;pivot.add(highlight);
+    sleeves.push({pivot,base,mesh,proxy,disc,highlight});
   });
   return {root,sleeves};
 }
