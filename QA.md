@@ -1,4 +1,13 @@
-# Introduction-first flow and simpler record playback — latest revision
+# Conventional biography, sequential clicks, and hinged cover - current revision
+
+- Reviewed the single portrait-and-biography composition at 1440x900 and 1024x768. The center line and all alternating checkpoints are removed. The selected record summary appears above the crate.
+- Actual pointer clicks on the eight exposed sleeve edges selected every correct title in order, without navigation. A second click on Beyond the Work after a separate reading interval opened its page; no double-click timing is required.
+- Browser state timestamps measured 524.7ms settling, 483.2ms cover closure, then 1116.4ms spinning before navigation. The closed-cover playback screenshot confirms the disc and tonearm remain visible through the acrylic.
+- Keyboard Enter selected Community first, then played it on a separate activation with Reduce motion enabled. Back restored selection/scroll and reopened the cover. Invalid drag returned to idle; valid drag opened Vinyl & Sound.
+- Production build and lighting checks passed. Browser warnings/errors were empty. Broader eight-route content checks and graphics fallback use the existing baseline; GPU performance and 1920px composition were not remeasured.
+- Captures: `screenshots/biography-1024.png`, `screenshots/biography-1440.png`, `screenshots/spaced-crate-acrylic-1440.png`, `screenshots/closed-cover-playback-1440.png`.
+
+# Introduction-first flow and simpler record playback — superseded revision
 
 - The site now opens on the three left/right/left introduction checkpoints. Browser review at 1440×800 and 1024×768 confirmed the portrait placeholder, heading, and copy remain readable before the collection.
 - Single-clicking Beyond the Work updated the persistent title and summary without changing routes. Double-clicking the raised sleeve opened `#record/beyond`; browser Back restored the same selection and collection position.
