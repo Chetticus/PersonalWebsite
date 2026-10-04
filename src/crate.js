@@ -11,13 +11,13 @@ export function createCrateModel(textures,woodTexture){
   const brass=new THREE.MeshStandardMaterial({color:0x9e8257,metalness:.55,roughness:.5});box(6.5,.055,.22,0,.775,2.5,brass);
   for(const x of [-2.96,2.96])for(const y of [.2,.62]){const m=new THREE.Mesh(new THREE.SphereGeometry(.033,8,6),brass);m.position.set(x,y,2.605);root.add(m);}
   records.forEach((r,i)=>{
-    const base=new THREE.Vector3((i-3.5)*.42,1.80+i*.026,1.7-i*.49);
+    const base=new THREE.Vector3((i-3.5)*.045,2.92+i*.025,2.02-i*.575);
     const pivot=new THREE.Group();pivot.position.copy(base);pivot.rotation.y=-.12;root.add(pivot);
     const edge=new THREE.MeshStandardMaterial({color:r.color,roughness:.94}),front=new THREE.MeshStandardMaterial({map:textures[i],roughness:.88});
-    const mesh=new THREE.Mesh(new THREE.BoxGeometry(3.18,3.18,.032),[edge,edge,edge,edge,front,edge]);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.index=i;pivot.add(mesh);
+    const mesh=new THREE.Mesh(new THREE.BoxGeometry(5.5,5.5,.032),[edge,edge,edge,edge,front,edge]);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.index=i;pivot.add(mesh);
     const disc=new THREE.Mesh(new THREE.CylinderGeometry(1.48,1.48,.016,64),new THREE.MeshStandardMaterial({color:0x101512,metalness:.3,roughness:.32}));disc.rotation.x=Math.PI/2;disc.position.set(.15,.21,-.035);pivot.add(disc);
-    const proxy=new THREE.Mesh(new THREE.BoxGeometry(3.18,3.18,.05),new THREE.MeshBasicMaterial({visible:false}));proxy.position.copy(base);proxy.rotation.y=-.12;proxy.userData.index=i;root.add(proxy);
-    const highlight=new THREE.Mesh(new THREE.BoxGeometry(3.16,.018,.037),new THREE.MeshBasicMaterial({color:0xf4dcb0,transparent:true,opacity:0,depthWrite:false}));highlight.position.y=1.59;pivot.add(highlight);
+    const proxy=new THREE.Mesh(new THREE.BoxGeometry(5.5,5.5,.05),new THREE.MeshBasicMaterial({visible:false}));proxy.position.copy(base);proxy.rotation.y=-.12;proxy.userData.index=i;root.add(proxy);
+    const highlight=new THREE.Mesh(new THREE.BoxGeometry(5.48,.018,.037),new THREE.MeshBasicMaterial({color:0xf4dcb0,transparent:true,opacity:0,depthWrite:false}));highlight.position.y=2.75;pivot.add(highlight);
     sleeves.push({pivot,base,mesh,proxy,disc,highlight});
   });
   return {root,sleeves};
