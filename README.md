@@ -1,6 +1,6 @@
 # Nguyen Hai Nam — Personal records
 
-Desktop prototype: read a conventional portrait-and-biography introduction → explore an eight-record collection → open a record’s content page → return to the restored collection. Local-only; no backend or accounts. One click selects a sleeve and explains it; a second separate click on the same selected sleeve starts playback, with no timing window. Dragging to the platter and the “Play selected record” button remain available. Index and hash URLs provide direct access.
+Desktop prototype: read a conventional portrait-and-biography introduction → explore an eight-record collection → open a record’s content page → return to the restored collection. Local-only; no backend or accounts. Hover or keyboard focus previews a sleeve and its summary; one click or Enter starts playback. Dragging to the platter and the “Play selected record” button remain available. Index and hash URLs provide direct access.
 
 ```sh
 npm install

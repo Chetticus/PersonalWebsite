@@ -1,4 +1,12 @@
-# Conventional biography, sequential clicks, and hinged cover - current revision
+# Compact collection, hover previews, and gentler motion - current revision
+
+- The turntable/disc scale is 0.78 (from 0.935), crate scale 0.75 (from 0.9), and scene canvas height 62% (from 69%). Side walls increased from 1.2 to 2.1 model units; the front stays low.
+- At maximum native scroll, the full hovered Research summary remained visible: y=59-146 at 1440x850, and y=54-134 at 1024x768. Screenshots confirmed that both objects and navigation fit at the page bottom.
+- Pointer-only previews exercised all eight titles across the exposed sleeve edges without navigating. One Research click then opened its section. Observed state durations: 652.1ms placement, 615.9ms lid closure, 1383.4ms spinning before navigation. Configured durations are 650/600/1375ms.
+- With Reduce motion enabled, one keyboard Enter opened Language & Access. Back restored selection and the open cover. The existing drag implementation remains; its full valid/invalid suite was checked in the prior revision. Build, syntax checks, and updated lighting tests passed.
+- Captures: `screenshots/compact-hover-1440.png` and `screenshots/compact-hover-1024.png`. GPU performance and 1920px visual composition were not remeasured.
+
+# Conventional biography, sequential clicks, and hinged cover - superseded revision
 
 - Reviewed the single portrait-and-biography composition at 1440x900 and 1024x768. The center line and all alternating checkpoints are removed. The selected record summary appears above the crate.
 - Actual pointer clicks on the eight exposed sleeve edges selected every correct title in order, without navigation. A second click on Beyond the Work after a separate reading interval opened its page; no double-click timing is required.
