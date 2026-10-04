@@ -12,7 +12,7 @@ export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState
   catch{host.classList.add('no-graphics');host.closest('section').classList.add('graphics-fallback');return null;}
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.30;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;host.prepend(renderer.domElement);renderer.domElement.setAttribute('aria-hidden','true');
-  const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-8,8,4.5,-4.5,.1,80);camera.position.set(4,11.2,17);camera.lookAt(0,2.2,0);
+  const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-8,8,4.5,-4.5,.1,80);camera.position.set(4,10.8,17);camera.lookAt(0,1.8,0);
   // Broad studio reflections reveal machined edges without adding visible scenery.
   const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment();
   scene.environment=pmrem.fromScene(room,.04).texture;scene.environmentIntensity=.38;
@@ -27,9 +27,9 @@ export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState
   const targetLight=new THREE.Vector3(-4,9,5),sampleTimes=[],loader=new THREE.TextureLoader();
   const texture=url=>{const t=loader.load(url,()=>wake());t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;};
   const textures=records.map((_,i)=>texture(artURL(i))),wood=texture('/wood.jpg');wood.wrapS=wood.wrapT=THREE.RepeatWrapping;wood.repeat.set(2,1);
-  const table=createTurntable();table.root.position.set(-3.8,0,0);table.root.scale.setScalar(.935);scene.add(table.root);
-  const crate=createCrateModel(textures,wood);crate.root.position.set(4.05,.08,0);crate.root.scale.setScalar(.9);scene.add(crate.root);
-  const vinyl=createVinyl(textures[0]);vinyl.root.scale.setScalar(.935);vinyl.root.visible=false;scene.add(vinyl.root);
+  const table=createTurntable();table.root.position.set(-3.5,0,0);table.root.scale.setScalar(.78);scene.add(table.root);
+  const crate=createCrateModel(textures,wood);crate.root.position.set(3.7,.08,0);crate.root.scale.setScalar(.75);scene.add(crate.root);
+  const vinyl=createVinyl(textures[0]);vinyl.root.scale.setScalar(.78);vinyl.root.visible=false;scene.add(vinyl.root);
   // One shared, low-contrast walnut surface gives both objects a common ground.
   const deskMaterial=new THREE.MeshStandardMaterial({map:wood,color:0x160e09,roughness:.94,metalness:0,transparent:true,opacity:.62});
   deskMaterial.onBeforeCompile=shader=>{
@@ -39,7 +39,7 @@ export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState
   const desk=new THREE.Mesh(new THREE.BoxGeometry(24,.18,12),deskMaterial);desk.position.set(0,-.16,0);desk.receiveShadow=true;scene.add(desk);
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(50,40),new THREE.ShadowMaterial({opacity:.22}));floor.rotation.x=-Math.PI/2;floor.position.y=-.03;floor.receiveShadow=true;scene.add(floor);
   const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2(),proxies=crate.sleeves.map(s=>s.proxy),hits=host.querySelector('.scene-hits');
-  const buttons=records.map((r,i)=>{const b=document.createElement('button');b.className='sleeve-hit';b.setAttribute('aria-label',`${r.title}: activate once for information, again to play`);b.dataset.record=i;b.addEventListener('focus',()=>{hovered=i;wake();});b.addEventListener('click',()=>activate(i));hits.append(b);return b;});
+  const buttons=records.map((r,i)=>{const b=document.createElement('button');b.className='sleeve-hit';b.setAttribute('aria-label',`Play ${r.title}; focus to preview`);b.dataset.record=i;b.addEventListener('focus',()=>{hovered=i;select(i);});b.addEventListener('click',()=>activate(i));hits.append(b);return b;});
   function setState(next){state=next;started=performance.now();host.dataset.state=state;stateHistory.push({state,at:started,index:sequenceIndex});if(stateHistory.length>16)stateHistory.shift();host.dataset.stateHistory=JSON.stringify(stateHistory);host.dataset.discVisible=String(vinyl.root.visible);onState(state,sequenceIndex);wake();}
   function project(point){const p=point.clone().project(camera),r=host.getBoundingClientRect();return {x:r.left+(p.x*.5+.5)*r.width,y:r.top+(-p.y*.5+.5)*r.height};}
   function sourcePosition(i){scene.updateMatrixWorld(true);return crate.sleeves[i].pivot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,0,.15));}
@@ -48,7 +48,7 @@ export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState
   function hit(e){setRay(e);scene.updateMatrixWorld(true);const fixed=raycaster.intersectObjects(proxies)[0];if(fixed)return fixed.object.userData.index;const moved=raycaster.intersectObjects(crate.sleeves.map(s=>s.mesh))[0];return moved?moved.object.userData.index:undefined;}
   function validDrop(e){const t=targetPosition(),c=project(t),edge=project(t.clone().add(new THREE.Vector3(2.3,0,0))),vertical=project(t.clone().add(new THREE.Vector3(0,0,2.4)));const rx=Math.max(85,Math.abs(edge.x-c.x)),ry=Math.max(58,Math.abs(vertical.y-c.y));return ((e.clientX-c.x)/rx)**2+((e.clientY-c.y)/ry)**2<=1;}
   function select(i){if(!['idle','returning'].includes(state))return;active=i;confirmed=i;buttons.forEach((b,j)=>b.setAttribute('aria-pressed',String(j===i)));onSelect(i);wake();}
-  function activate(i){if(state!=='idle')return;if(confirmed===i){host.dataset.clickAction='play';place(i);}else{host.dataset.clickAction='select';select(i);}}
+  function activate(i){if(state!=='idle')return;select(i);host.dataset.clickAction='play';place(i);}
   function prepare(i){const resume=state==='returning'&&i===sequenceIndex;sequenceIndex=i;active=i;vinyl.label.material.map=textures[i];vinyl.label.material.needsUpdate=true;vinyl.root.visible=true;if(!resume){vinyl.root.position.copy(sourcePosition(i));vinyl.root.rotation.set(Math.PI/2,0,0);}spinSpeed=0;notified=false;}
   function settle(){drag=null;table.halo.material.opacity=.35;settleStart=vinyl.root.position.clone();settleRotation=vinyl.root.rotation.x;setState('settling');}
   function place(i=active){if(!['idle','returning'].includes(state))return false;prepare(i);settle();return true;}
@@ -64,7 +64,7 @@ export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState
       drag={plane,offset:vinyl.root.position.clone().sub(point),startX:pending.x,startY:pending.y,moved:true,pointer:pending.pointer,rotationX:vinyl.root.rotation.x};extractionAt=performance.now();setState('dragging');
     }
     if(state==='dragging'&&drag){setRay(e);const p=raycaster.ray.intersectPlane(drag.plane,new THREE.Vector3());if(p)vinyl.root.position.copy(p.add(drag.offset)).add(new THREE.Vector3(0,.14,.15));if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)>5)drag.moved=true;table.halo.material.opacity=validDrop(e)?.65:.12;host.dataset.dropValid=String(validDrop(e));wake();return;}
-    if(state!=='idle')return;const i=hit(e);hovered=i??-1;renderer.domElement.style.cursor=i===undefined?'default':'pointer';wake();
+    if(state!=='idle')return;const i=hit(e);hovered=i??-1;if(i!==undefined&&i!==confirmed)select(i);renderer.domElement.style.cursor=i===undefined?'default':'pointer';wake();
   });
   renderer.domElement.addEventListener('pointerup',e=>{
     const clicked=pendingDrag;pendingDrag=null;
@@ -93,7 +93,7 @@ export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState
     if(state==='spinning'||state==='playing'){
       if(state==='spinning')moving+=1; // Keep the short reduced-motion acknowledgement alive.
       if(!isReduced){spinSpeed=Math.min(1,spinSpeed+dt*1000/MOTION.spinUp);vinyl.root.rotation.y+=dt*3.49*ease(spinSpeed);table.platter.rotation.y=vinyl.root.rotation.y;moving+=1;}
-      const armTarget=-.44;const d=armTarget-table.arm.rotation.y;table.arm.rotation.y+=d*a;const lowered=ease((elapsed-200)/650);table.arm.rotation.x=isReduced?0:-.045*(1-lowered);moving+=Math.abs(d)+(!isReduced&&elapsed<850?.01:0);
+      const armTarget=-.44;const d=armTarget-table.arm.rotation.y;table.arm.rotation.y+=d*a;const lowered=ease((elapsed-MOTION.armApproach)/MOTION.armLower);table.arm.rotation.x=isReduced?0:-.045*(1-lowered);moving+=Math.abs(d)+(!isReduced&&elapsed<MOTION.armApproach+MOTION.armLower?.01:0);
       if(state==='spinning'&&elapsed>=(isReduced?140:MOTION.sectionPlay)&&!notified){notified=true;setState('playing');onComplete(sequenceIndex);}
     }else{const d=-table.arm.rotation.y;table.arm.rotation.y+=d*a;table.arm.rotation.x=!isReduced&&state==='settling'?-.045:0;moving+=Math.abs(d);}
     const quiet=['settling','closing','spinning','playing'].includes(state),lightGoal=quiet?new THREE.Vector3(-4,9,5):targetLight;moving+=lamp.position.distanceTo(lightGoal);lamp.position.lerp(lightGoal,a);
