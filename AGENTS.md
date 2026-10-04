@@ -11,6 +11,7 @@ Desktop-only local prototype for mentor review. Support 1024px; compose for 1280
 ## Conventions
 - Vanilla ES modules, Vite, modern Three.js. `src/main.js` owns routes, selection, scroll, and HTML; `src/scene.js` alone animates meshes, cameras, and lights. `turntable.js` and `crate.js` construct reusable geometry. `src/motion.js` centralizes timing and delayed lighting.
 - `src/home.css` owns biography and collection layout. Graphics fallback and direct section URLs remain accessible.
+- Prepare graphics asynchronously after the biography paints; yield during construction and warm textures/shaders before first interaction. `mesh-batching.js` combines only rigid opaque siblings; preserve dynamic transform owners. Use `?profile=1` for local startup diagnostics and `node scripts/check-batching.mjs` after batching changes.
 - `src/identity.js`: portrait source/alt/placeholder flag and draft biography copy. `src/content.js`: eight section narratives and résumé summaries. Keep unfinished claims labeled; never include street addresses or phone numbers.
 - Sleeve art: `public/sleeves/*.svg`; optional generator `node scripts/generate-art.mjs`. The portrait source appears in the HTML introduction.
 - Run `npm run dev -- --port 5173`, `npm run build`, and `node scripts/check-motion.mjs`. Keep dependencies lean. Frontend-design guidance and Apache license remain in `.agents/skills/frontend-design/`.

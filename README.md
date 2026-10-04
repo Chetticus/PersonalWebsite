@@ -20,3 +20,5 @@ Open http://127.0.0.1:5173 on a desktop browser (1024px minimum; 1280–1920px r
 `src/motion.js` centralizes timing. `node scripts/check-motion.mjs` verifies the separate 500ms light delay, fade duration, cancellation, and reentry. Add `?graphics=off` to exercise the HTML fallback. The requested tkex reference has no identified reuse license, so the turntable is original geometry informed by its component layout; no source, models, or audio were copied.
 
 The introduction uses native scrolling. The biography comes before the collection. The 3D collection uses one enlarged turntable-and-crate composition. Playback places the disc, closes the acrylic cover, starts spinning, then opens the section.
+
+The scene prepares asynchronously after the biography paints, warming textures/shaders before browsing. `?profile=1` enables local long-task and scroll-gap diagnostics in the root element's `data-performance`; scene timing/draw metrics are on `#collection-scene`. These measurements are never transmitted. `node scripts/check-batching.mjs` verifies that geometry batching preserves transforms, shadows, and animated groups.
