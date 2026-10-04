@@ -59,7 +59,18 @@ export function createTurntable(){
   box(.18,.012,1.3,2.43,.936,.93,rubber);box(.25,.065,.14,2.43,.97,.85,metal);
   for(let i=0;i<9;i++)box(i===4?.10:.055,.007,.012,2.23,.939,.4+i*.13,charcoal);
   for(const x of [-2.65,2.65])for(const z of [-1.98,1.98]){cylinder(.043,.012,x,.935,z,metal);box(.052,.005,.01,x,.943,z,charcoal);}
-  return {root,platter,arm,halo,discPosition:new THREE.Vector3(-.65,1.2,.12)};
+  // A thin, smoked acrylic shell pivots on two real rear hinge blocks.
+  const lid=new THREE.Group();lid.position.set(0,.96,-2.12);lid.rotation.x=-1.12;root.add(lid);
+  const acrylic=new THREE.MeshPhysicalMaterial({color:0xdde8e4,metalness:0,roughness:.08,transmission:0,transparent:true,opacity:.07,ior:1.49,clearcoat:1,clearcoatRoughness:.06,side:THREE.DoubleSide,depthWrite:false});
+  acrylic.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','#include <opaque_fragment>\ngl_FragColor.a = 0.025 + 0.16 * pow(1.0 - abs(dot(normalize(vViewPosition), normal)), 3.0);');};
+  const edgeGlass=new THREE.MeshPhysicalMaterial({color:0xb9cfce,transparent:true,opacity:.48,roughness:.15,metalness:.16,depthWrite:false});
+  box(5.86,.045,4.40,0,1.08,2.16,acrylic,lid,.012);
+  box(.045,1.08,4.4,-2.91,.54,2.16,acrylic,lid,.012);box(.045,1.08,4.4,2.91,.54,2.16,acrylic,lid,.012);
+  box(5.86,1.08,.045,0,.54,4.34,acrylic,lid,.012);box(5.86,1.08,.045,0,.54,-.02,acrylic,lid,.012);
+  const outline=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(5.86,1.08,4.4)),new THREE.LineBasicMaterial({color:0xa8bdbd,transparent:true,opacity:.45}));outline.position.set(0,.54,2.16);lid.add(outline);
+  box(.44,.055,.12,0,1.10,4.25,edgeGlass,lid);
+  for(const x of [-1.95,1.95]){box(.48,.18,.24,x,.96,-2.12,charcoal);const hinge=cylinder(.10,.42,x,1.02,-2.12,metal);hinge.rotation.z=Math.PI/2;}
+  return {root,platter,arm,halo,lid,lidOpen:-1.12,discPosition:new THREE.Vector3(-.65,1.2,.12)};
 }
 
 export function createVinyl(texture){
