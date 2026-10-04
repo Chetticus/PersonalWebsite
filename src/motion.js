@@ -1,5 +1,5 @@
 // Milliseconds unless a property explicitly specifies a rate.
-export const MOTION = Object.freeze({ extraction:180, settle:760, return:560, spinUp:900, sectionPlay:1200, cover:480, lightDelay:500, lightReveal:900, hoverRate:12 });
+export const MOTION = Object.freeze({ extraction:160, settle:520, lidClose:480, return:440, spinUp:650, sectionPlay:1100, cover:420, lightDelay:500, lightReveal:900, hoverRate:15 });
 export const clamp = value => Math.max(0, Math.min(1, value));
 export const ease = value => {const t=clamp(value);return t*t*(3-2*t);};
 
