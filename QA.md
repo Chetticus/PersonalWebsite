@@ -1,4 +1,12 @@
-# Opening placement gate and quick-departure scrolling — latest revision
+# Introduction-first flow and simpler record playback — latest revision
+
+- The site now opens on the three left/right/left introduction checkpoints. Browser review at 1440×800 and 1024×768 confirmed the portrait placeholder, heading, and copy remain readable before the collection.
+- Single-clicking Beyond the Work updated the persistent title and summary without changing routes. Double-clicking the raised sleeve opened `#record/beyond`; browser Back restored the same selection and collection position.
+- Dragging Vinyl & Sound to the platter still completed playback and opened `#record/vinyl-sound`. The visible “Play selected record” button and eight focusable sleeve controls remain the keyboard path.
+- The graphics-off route exposed all eight direct section links. Production browser warning/error logs were empty. Build, JavaScript syntax checks, motion checks, and diff checks passed.
+- Captures: `screenshots/introduction-first-1024.png`, `screenshots/introduction-first-1440.png`, and `screenshots/collection-click-to-play-1440.png`. The broader all-route, invalid-drop, Escape, reduced-motion, and lighting baseline below was not repeated for this focused revision.
+
+# Opening placement gate and quick-departure scrolling — superseded revision
 
 - Removed visible opening footer navigation, placement button, and status text shown in the supplied screenshot. Keyboard focus reveals the placement control; the live status remains screen-reader accessible.
 - Root opening: wheel and Page Down left scrollY at 0. Invalid drag returned to idle and retained the lock. Valid drag unlocked at spinning. Lower content is inert while locked. Keyboard skip link focused placement; Enter placed the record and unlocked successfully.
