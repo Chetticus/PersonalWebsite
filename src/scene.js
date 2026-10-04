@@ -108,8 +108,9 @@ export async function createListeningScene(host,{reduced=false,onSelect=()=>{},o
     if(state==='spinning'||state==='playing'){
       if(state==='spinning')moving+=1; // Keep the short reduced-motion acknowledgement alive.
       if(!isReduced){spinSpeed=Math.min(1,spinSpeed+dt*1000/MOTION.spinUp);vinyl.root.rotation.y+=dt*3.49*ease(spinSpeed);table.platter.rotation.y=vinyl.root.rotation.y;moving+=1;}
-      const armTarget=-.44;const d=armTarget-table.arm.rotation.y;table.arm.rotation.y+=d*a;const lowered=ease((elapsed-MOTION.armApproach)/MOTION.armLower);table.arm.rotation.x=isReduced?0:-.045*(1-lowered);moving+=Math.abs(d)+(!isReduced&&elapsed<MOTION.armApproach+MOTION.armLower?.01:0);
-      if(state==='spinning'&&elapsed>=(isReduced?140:MOTION.sectionPlay)&&!notified){notified=true;setState('playing');onComplete(sequenceIndex);}
+      const armTarget=-.44,armDamping=isReduced?1:1-Math.exp(-MOTION.tonearmRate*dt);const d=armTarget-table.arm.rotation.y;table.arm.rotation.y+=d*armDamping;const lowered=ease((elapsed-MOTION.armApproach)/MOTION.armLower);table.arm.rotation.x=isReduced?0:-.045*(1-lowered);moving+=Math.abs(d)+(!isReduced&&elapsed<MOTION.armApproach+MOTION.armLower?.01:0);
+      const playbackDuration=isReduced?140:Math.max(MOTION.sectionPlay,MOTION.armApproach+MOTION.armLower);
+      if(state==='spinning'&&elapsed>=playbackDuration&&!notified){notified=true;setState('playing');onComplete(sequenceIndex);}
     }else{const d=-table.arm.rotation.y;table.arm.rotation.y+=d*a;table.arm.rotation.x=!isReduced&&state==='settling'?-.045:0;moving+=Math.abs(d);}
     const quiet=['settling','closing','spinning','playing'].includes(state),lightGoal=quiet?new THREE.Vector3(-4,9,5):targetLight;moving+=lamp.position.distanceTo(lightGoal);lamp.position.lerp(lightGoal,a);
     scene.environmentIntensity=.05+.33*illumination;
