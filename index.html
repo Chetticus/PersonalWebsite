@@ -12,12 +12,6 @@
   <a class="skip-link" href="#introduction">Skip to introduction</a>
   <nav id="record-index" aria-label="Record index" hidden></nav>
   <main id="home">
-    <section id="opening" class="listening-section" aria-labelledby="opening-title">
-      <div class="opening-heading"><h1 id="opening-title" class="sr-only">Nguyen Hai Nam</h1><p>Place my record on the turntable to begin.</p></div>
-      <div id="opening-scene" class="listening-scene" aria-label="Turntable on the left; draggable portrait record on the right"><div class="scene-hits"></div><div class="fallback-scene"><img class="portrait-image" alt=""/><p>The 3D scene is unavailable. You can still explore every story below.</p></div></div>
-      <div class="opening-bottom"><div class="placement-control"><button id="place-intro" class="place-action keyboard-placement">Place on turntable <span>↗</span></button><p id="opening-status" class="scene-status sr-only" role="status">Nguyen Hai Nam · Introduction</p><a id="continue-intro" href="#introduction" hidden>Continue reading ↓</a></div></div>
-    </section>
-
     <section id="introduction" aria-label="A few parts of my world">
       <div class="introduction-line" aria-hidden="true"><span id="line-progress"></span></div>
       <article class="checkpoint checkpoint-left" id="checkpoint-1"><span class="checkpoint-marker" aria-hidden="true"></span><div class="checkpoint-content"><figure class="portrait"><div class="portrait-surface" id="portrait-surface"><img class="portrait-image" alt="" /></div><figcaption id="portrait-caption"></figcaption></figure><h2 tabindex="-1"></h2><p></p></div></article>
@@ -27,9 +21,9 @@
     </section>
 
     <section id="collection" class="listening-section" aria-labelledby="collection-title">
-      <div class="collection-heading"><h2 id="collection-title">Find a connection.</h2><p>Choose a record. Place it on the turntable.</p></div>
-      <div id="collection-scene" class="listening-scene" aria-label="Turntable on the left and eight draggable section records on the right"><div class="scene-hits"></div><div class="fallback-scene"><p>The 3D scene is unavailable. Select a story from the collection below.</p></div></div>
-      <div class="collection-bottom"><p id="collection-status" class="scene-status" role="status"></p><div class="record-info"><div><h3 id="active-title">Vinyl &amp; Sound</h3><p id="active-description"></p></div><button id="place-record" class="place-action">Place on turntable <span>↗</span></button></div></div>
+      <div class="collection-heading"><h2 id="collection-title">Find a connection.</h2><p>Click once to explore. Double-click or drag to play.</p></div>
+      <div id="collection-scene" class="listening-scene" aria-label="Turntable on the left and eight section records on the right. Click once to select a record; double-click or drag it to the turntable to open it."><div class="scene-hits"></div><div class="fallback-scene"><p>The 3D scene is unavailable. Select a story from the collection below.</p></div></div>
+      <div class="collection-bottom"><p id="collection-status" class="scene-status" role="status"></p><div class="record-info"><div><h3 id="active-title">Vinyl &amp; Sound</h3><p id="active-description"></p></div><button id="place-record" class="place-action">Play selected record <span>↗</span></button></div></div>
       <div id="record-list" class="record-list" aria-label="All eight sections"></div>
       <nav class="collection-nav" aria-label="Collection navigation"><a href="#introduction">About me</a><button id="index-toggle" aria-expanded="false" aria-controls="record-index">Index</button><a href="/resume.html" target="_blank" rel="noopener">Résumé</a><button id="motion-toggle" aria-pressed="false">Reduce motion</button></nav>
     </section>
