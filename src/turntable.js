@@ -1,22 +1,29 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { batchStaticMeshes } from './mesh-batching.js';
+import { yieldToBrowser } from './scene-scheduling.js';
 
 // Original geometry and deterministic material maps; no external turntable assets.
-function surface(kind){
+async function surface(kind){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=512;
   const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(512,512);
   let seed=71;const noise=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-  for(let y=0;y<512;y++)for(let x=0;x<512;x++){
+  const base=kind==='wood'?[78,46,27]:[160,164,165];
+  for(let y=0;y<512;y++){
+    // Keep the material resolution, but let input and scrolling run between strips.
+    if(y%32===0)await yieldToBrowser();
+    for(let x=0;x<512;x++){
     const grain=Math.sin(y*.38+Math.sin(x*.009)*5+Math.sin(y*.043)*3+Math.sin(x*.023+y*.008)*2);
     const fine=Math.sin(y*2.1+Math.sin(x*.016)*2);
     const v=kind==='wood'?grain*15+fine*5+(noise()-.5)*9:(noise()-.5)*18+Math.sin(y*3.1)*12;
-    const base=kind==='wood'?[78,46,27]:[160,164,165];const i=(y*512+x)*4;
+    const i=(y*512+x)*4;
     for(let c=0;c<3;c++)pixels.data[i+c]=base[c]+v;pixels.data[i+3]=255;
+    }
   }
   ctx.putImageData(pixels,0,0);const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;map.wrapS=map.wrapT=THREE.RepeatWrapping;map.anisotropy=4;return map;
 }
-export function createTurntable(){
-  const root=new THREE.Group(),grain=surface('wood'),brush=surface('metal');
+export async function createTurntable(){
+  const root=new THREE.Group(),grain=await surface('wood'),brush=await surface('metal');
   const charcoal=new THREE.MeshStandardMaterial({color:0x202426,roughness:.4,metalness:.65,map:brush,bumpMap:brush,bumpScale:.006});
   const metal=new THREE.MeshStandardMaterial({color:0xc4c9ca,roughness:.32,metalness:.85});
   const deck=new THREE.MeshStandardMaterial({color:0x858d90,map:brush,bumpMap:brush,bumpScale:.008,roughness:.38,metalness:.72});
@@ -34,6 +41,7 @@ export function createTurntable(){
   box(5.94,.61,4.62,0,.49,0,walnut,root,.13);
   box(5.78,.045,4.46,0,.81,0,rubber,root,.06);
   box(5.70,.10,4.38,0,.875,0,deck,root,.07);
+  await yieldToBrowser();
   // Recessed motor housing and a polished lip give the platter a real bearing stack.
   cylinder(1.96,.045,-.65,.945,.12,charcoal);
   const platter=new THREE.Group();platter.position.set(-.65,1.01,.12);root.add(platter);
@@ -45,6 +53,7 @@ export function createTurntable(){
   for(let n=0;n<12;n++)ring(.67+n*.094,.006,.169,charcoal,platter);
   cylinder(.048,.24,-.65,1.24,.12,metal);cylinder(.085,.026,-.65,1.15,.12,brass);
   const halo=mesh(new THREE.RingGeometry(1.92,1.955,96),new THREE.MeshBasicMaterial({color:0xd8bd84,transparent:true,opacity:.08,side:THREE.DoubleSide,depthWrite:false}),-.65,1.02,.12);halo.rotation.x=-Math.PI/2;
+  await yieldToBrowser();
   cylinder(.42,.18,1.91,.99,-1.18,charcoal);ring(.36,.025,1.09,metal,root,1.91,-1.18);cylinder(.26,.20,1.91,1.17,-1.18,metal);
   const arm=new THREE.Group();arm.position.set(1.91,1.37,-1.18);root.add(arm);
   const tube=mesh(new THREE.CylinderGeometry(.046,.046,2.67,18),metal,0,0,.88,arm);tube.rotation.x=Math.PI/2;
@@ -52,6 +61,7 @@ export function createTurntable(){
   for(let n=0;n<4;n++){const collar=ring(.181,.008,0,metal,arm);collar.rotation.x=0;collar.position.z=-.69+n*.08;}
   box(.25,.1,.50,-.08,-.02,2.28,charcoal,arm);box(.12,.12,.18,-.08,-.12,2.44,brass,arm);
   box(.11,.4,.14,1.93,1.07,.25,charcoal);
+  await yieldToBrowser();
   // Inset controls, fasteners, and a restrained warm power indicator.
   cylinder(.22,.025,-2.38,.94,1.75,charcoal);cylinder(.17,.06,-2.38,.975,1.75,metal);
   cylinder(.10,.025,-1.92,.95,1.75,charcoal);cylinder(.075,.045,-1.92,.975,1.75,brass);
@@ -70,6 +80,7 @@ export function createTurntable(){
   const outline=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(5.86,1.08,4.4)),new THREE.LineBasicMaterial({color:0xa8bdbd,transparent:true,opacity:.45}));outline.position.set(0,.54,2.16);lid.add(outline);
   box(.44,.055,.12,0,1.10,4.25,edgeGlass,lid);
   for(const x of [-1.95,1.95]){box(.48,.18,.24,x,.96,-2.12,charcoal);const hinge=cylinder(.10,.42,x,1.02,-2.12,metal);hinge.rotation.z=Math.PI/2;}
+  for(const group of [root,platter,arm]){batchStaticMeshes(group);await yieldToBrowser();}
   return {root,platter,arm,halo,lid,lidOpen:-1.12,discPosition:new THREE.Vector3(-.65,1.2,.12)};
 }
 

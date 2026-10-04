@@ -1,16 +1,17 @@
 import './style.css';
 import './home.css';
+import './performance.js';
 import { records } from './content.js';
 import { portrait,introduction } from './identity.js';
 import { artURL } from './artwork.js';
-import { createListeningScene } from './scene.js';
+import { afterFirstPaint,yieldToBrowser } from './scene-scheduling.js';
 import { detailHTML } from './detail.js';
 import { MOTION,LightingReveal } from './motion.js';
 
 const $=s=>document.querySelector(s);
 const home=$('#home'),detail=$('#detail'),index=$('#record-index'),media=matchMedia('(prefers-reduced-motion: reduce)');
 let reduced=media.matches,active=0,current=null,savedY=history.state?.collectionY??0,fromCollection=false,routeToken=0;
-let collectionScene,lightFrame=0,scrollFrame=0,restoreLit=false;
+let collectionScene,sceneReady,lightFrame=0,scrollFrame=0,restoreLit=false;
 const reveal=new LightingReveal();
 history.scrollRestoration='manual';
 document.documentElement.classList.toggle('reduced-motion',reduced);
@@ -31,8 +32,21 @@ function stateChanged(state,i){
   button.disabled=!['idle','returning','fallback'].includes(state);
   status.textContent=state==='dragging'?'Release over the platter. Escape to cancel.':state==='returning'?'Returning to the sleeve.':state==='settling'?'Placing the record.':state==='closing'?'Closing the cover.':state==='spinning'?records[i].title:state==='playing'?`Opening ${records[i].title}…`:'';
 }
-collectionScene=createListeningScene($('#collection-scene'),{reduced,onSelect:selected,onState:stateChanged,onComplete:i=>openRecord(i)});
-$('#place-record').onclick=()=>{if(collectionScene?.available)collectionScene.place(active);else openRecord(active);};
+async function prepareCollection(){
+  const host=$('#collection-scene');host.dataset.phase='queued';
+  await afterFirstPaint();await yieldToBrowser();
+  try{
+    const {createListeningScene}=await import('./scene.js');
+    collectionScene=await createListeningScene(host,{reduced,onSelect:selected,onState:stateChanged,onComplete:i=>openRecord(i)});
+    collectionScene?.reduce(reduced);
+    if($('.record-info').classList.contains('has-selection'))collectionScene?.select(active);
+    if(current!==null)collectionScene?.pause();else updateScroll();
+  }catch(error){
+    host.classList.add('no-graphics');$('#collection').classList.add('graphics-fallback');host.dataset.phase='fallback';
+    console.warn('The listening scene could not be prepared; HTML navigation remains available.',error);
+  }
+}
+$('#place-record').onclick=async()=>{const i=active;await sceneReady;if(current!==null)return;if(collectionScene?.available)collectionScene.place(i);else openRecord(i);};
 
 function setReduced(value){reduced=value;document.documentElement.classList.toggle('reduced-motion',value);$('#motion-toggle').setAttribute('aria-pressed',String(value));$('#motion-toggle').textContent=value?'Motion reduced':'Reduce motion';collectionScene?.reduce(value);updateScroll();}
 $('#motion-toggle').onclick=()=>setReduced(!reduced);media.addEventListener('change',e=>setReduced(e.matches));
@@ -97,3 +111,4 @@ const initial=records.findIndex(r=>location.hash===`#record/${r.id}`);
 if(initial>=0){savedY=history.state?.collectionY??$('#collection').offsetTop;fromCollection=Boolean(history.state?.fromCollection);openRecord(initial,false);}
 else if(['#collection','#introduction'].includes(location.hash))requestAnimationFrame(()=>{scrollTo(0,$(location.hash).offsetTop);updateScroll();});
 updateScroll();
+sceneReady=prepareCollection();

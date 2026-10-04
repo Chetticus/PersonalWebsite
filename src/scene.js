@@ -5,30 +5,45 @@ import { createTurntable,createVinyl } from './turntable.js';
 import { createCrateModel } from './crate.js';
 import { MOTION,ease } from './motion.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { yieldToBrowser } from './scene-scheduling.js';
 
-export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState=()=>{},onComplete=()=>{}}={}){
+export async function createListeningScene(host,{reduced=false,onSelect=()=>{},onState=()=>{},onComplete=()=>{}}={}){
+  const preparationStarted=performance.now();host.dataset.phase='preparing';
+  const stages=[];const stage=name=>{stages.push({name,at:Math.round(performance.now())});host.dataset.preparationStages=JSON.stringify(stages);};
+  stage('renderer');
   let renderer;
   try{if(new URLSearchParams(location.search).get('graphics')==='off')throw new Error('Requested fallback');renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});}
-  catch{host.classList.add('no-graphics');host.closest('section').classList.add('graphics-fallback');return null;}
+  catch{host.dataset.phase='fallback';host.classList.add('no-graphics');host.closest('section').classList.add('graphics-fallback');return null;}
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.30;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;host.prepend(renderer.domElement);renderer.domElement.setAttribute('aria-hidden','true');
+  await yieldToBrowser();
   const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-8,8,4.5,-4.5,.1,80);camera.position.set(4,10.8,17);camera.lookAt(0,1.8,0);
   // Broad studio reflections reveal machined edges without adding visible scenery.
   const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment();
-  scene.environment=pmrem.fromScene(room,.04).texture;scene.environmentIntensity=.38;
+  stage('environment');
+  const environmentCompileTarget=new THREE.WebGLRenderTarget(1,1);renderer.setRenderTarget(environmentCompileTarget);
+  await renderer.compileAsync(room,camera);await yieldToBrowser();
+  renderer.setRenderTarget(null);environmentCompileTarget.dispose();
+  scene.environment=pmrem.fromScene(room,.04,.1,100,{size:64}).texture;scene.environmentIntensity=.38;
   room.dispose();pmrem.dispose();
+  await yieldToBrowser();
   const ambient=new THREE.HemisphereLight(0xd7dbd1,0x3c2a1a,1.1);scene.add(ambient);
   const lamp=new THREE.SpotLight(0xffd9a9,200,40,.87,1,1.4);lamp.position.set(-4,9,5);lamp.target.position.set(0,0,0);lamp.castShadow=true;lamp.shadow.mapSize.set(1024,1024);lamp.shadow.normalBias=.055;lamp.shadow.bias=-.001;scene.add(lamp,lamp.target);
   const rim=new THREE.DirectionalLight(0xccc8b2,1.7);rim.position.set(4,6,-4);scene.add(rim);
   const destinationLight=new THREE.PointLight(0xe5c492,8,8,2);destinationLight.position.set(-4,3.5,1);scene.add(destinationLight);
-  let raf=0,last=0,visible=false,paused=false,graphicsAvailable=true,state='idle',active=0,isReduced=reduced,illumination=0;
+  let raf=0,last=0,visible=false,paused=false,ready=false,graphicsAvailable=true,state='idle',active=0,isReduced=reduced,illumination=0;
   let started=0,sequenceIndex=0,spinSpeed=0,notified=false,drag=null,pendingDrag=null,returnStart=null,settleStart=null,settleRotation=0,extractionAt=0,confirmed=-1,hovered=-1;
   const stateHistory=[];
   const targetLight=new THREE.Vector3(-4,9,5),sampleTimes=[],loader=new THREE.TextureLoader();
-  const texture=url=>{const t=loader.load(url,()=>wake());t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;};
+  const loads=[];
+  const texture=url=>{let finish;loads.push(new Promise(resolve=>{finish=resolve;}));const t=loader.load(url,()=>{finish();wake();},undefined,()=>finish());t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;};
   const textures=records.map((_,i)=>texture(artURL(i))),wood=texture('/wood.jpg');wood.wrapS=wood.wrapT=THREE.RepeatWrapping;wood.repeat.set(2,1);
-  const table=createTurntable();table.root.position.set(-3.5,0,0);table.root.scale.setScalar(.78);scene.add(table.root);
+  stage('turntable');
+  const table=await createTurntable();table.root.position.set(-3.5,0,0);table.root.scale.setScalar(.78);scene.add(table.root);
+  await yieldToBrowser();
+  stage('crate');
   const crate=createCrateModel(textures,wood);crate.root.position.set(3.7,.08,0);crate.root.scale.setScalar(.75);scene.add(crate.root);
+  await yieldToBrowser();
   const vinyl=createVinyl(textures[0]);vinyl.root.scale.setScalar(.78);vinyl.root.visible=false;scene.add(vinyl.root);
   // One shared, low-contrast walnut surface gives both objects a common ground.
   const deskMaterial=new THREE.MeshStandardMaterial({map:wood,color:0x160e09,roughness:.94,metalness:0,transparent:true,opacity:.62});
@@ -51,10 +66,10 @@ export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState
   function activate(i){if(state!=='idle')return;select(i);host.dataset.clickAction='play';place(i);}
   function prepare(i){const resume=state==='returning'&&i===sequenceIndex;sequenceIndex=i;active=i;vinyl.label.material.map=textures[i];vinyl.label.material.needsUpdate=true;vinyl.root.visible=true;if(!resume){vinyl.root.position.copy(sourcePosition(i));vinyl.root.rotation.set(Math.PI/2,0,0);}spinSpeed=0;notified=false;}
   function settle(){drag=null;table.halo.material.opacity=.35;settleStart=vinyl.root.position.clone();settleRotation=vinyl.root.rotation.x;setState('settling');}
-  function place(i=active){if(!['idle','returning'].includes(state))return false;prepare(i);settle();return true;}
+  function place(i=active){if(!ready||!['idle','returning'].includes(state))return false;prepare(i);settle();return true;}
   function cancel(){pendingDrag=null;if(state!=='dragging')return;drag=null;returnStart=vinyl.root.position.clone();settleRotation=vinyl.root.rotation.x;setState('returning');}
   renderer.domElement.addEventListener('pointerdown',e=>{
-    if(e.button!==0||!['idle','returning'].includes(state))return;const i=hit(e);if(i===undefined)return;
+    if(!ready||e.button!==0||!['idle','returning'].includes(state))return;const i=hit(e);if(i===undefined)return;
     pendingDrag={i,x:e.clientX,y:e.clientY,pointer:e.pointerId};renderer.domElement.setPointerCapture(e.pointerId);e.preventDefault();
   });
   renderer.domElement.addEventListener('pointermove',e=>{
@@ -80,7 +95,7 @@ export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState
   function bounds(mesh){scene.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(mesh),ps=[];for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z])ps.push(project(new THREE.Vector3(x,y,z)));const xs=ps.map(p=>p.x),ys=ps.map(p=>p.y);return {left:Math.min(...xs),top:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};}
   function positionHits(){const r=host.getBoundingClientRect();buttons.forEach((b,i)=>{const p=bounds(crate.sleeves[i].proxy);Object.assign(b.style,{left:`${p.left-r.left}px`,top:`${p.top-r.top}px`,width:`${p.width}px`,height:`${p.height}px`});});const target=project(targetPosition());host.dataset.platter=JSON.stringify({x:target.x-r.left,y:target.y-r.top});host.dataset.source=JSON.stringify(project(sourcePosition(active)));}
   function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h);const width=Math.max(16,7*w/h),height=width*h/w;camera.left=-width/2;camera.right=width/2;camera.top=height/2;camera.bottom=-height/2;camera.updateProjectionMatrix();camera.updateMatrixWorld();positionHits();wake();}
-  function frame(now){raf=0;if(paused||!visible||document.hidden)return;const before=performance.now(),dt=Math.min((now-last)/1000||.016,.04);last=now;const a=isReduced?1:1-Math.exp(-MOTION.hoverRate*dt);let moving=0;
+  function frame(now){raf=0;if(!ready||paused||!visible||document.hidden)return;const before=performance.now(),dt=Math.min((now-last)/1000||.016,.04);last=now;const a=isReduced?1:1-Math.exp(-MOTION.hoverRate*dt);let moving=0;
     const lifted=hovered>=0?hovered:confirmed;
     crate.sleeves.forEach(({pivot,base,disc,highlight},i)=>{const selected=i===lifted;const targetY=base.y+(selected?.42:0),targetX=base.x,rx=selected?-.12:0;for(const [axis,target]of [['y',targetY],['x',targetX]]){const d=target-pivot.position[axis];pivot.position[axis]+=d*a;moving+=Math.abs(d);}highlight.material.opacity+=((selected?.22:0)-highlight.material.opacity)*a;const d=rx-pivot.rotation.x;pivot.rotation.x+=d*a;moving+=Math.abs(d);disc.visible=!(vinyl.root.visible&&sequenceIndex===i);});
     let elapsed=Math.max(0,now-started);
@@ -99,14 +114,36 @@ export function createListeningScene(host,{reduced=false,onSelect=()=>{},onState
     const quiet=['settling','closing','spinning','playing'].includes(state),lightGoal=quiet?new THREE.Vector3(-4,9,5):targetLight;moving+=lamp.position.distanceTo(lightGoal);lamp.position.lerp(lightGoal,a);
     scene.environmentIntensity=.05+.33*illumination;
     ambient.intensity=.32+1.05*illumination;lamp.intensity=20+180*illumination;rim.intensity=.2+1.5*illumination;destinationLight.intensity=state==='dragging'?18:6;
-    renderer.render(scene,camera);sampleTimes.push(performance.now()-before);if(sampleTimes.length>180)sampleTimes.shift();const frames=Number(host.dataset.frames||0)+1;host.dataset.frames=frames;host.dataset.renderStats=JSON.stringify({frames,idle:moving<.002,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,cpuSubmitMedianMs:[...sampleTimes].sort((a,b)=>a-b)[Math.floor(sampleTimes.length/2)]});
+    renderer.render(scene,camera);const cpuMs=performance.now()-before;if(!host.dataset.firstRenderCpuMs)host.dataset.firstRenderCpuMs=cpuMs.toFixed(1);sampleTimes.push(cpuMs);if(sampleTimes.length>180)sampleTimes.shift();const frames=Number(host.dataset.frames||0)+1;host.dataset.frames=frames;if(frames===1||frames%15===0||moving<.002)host.dataset.renderStats=JSON.stringify({frames,idle:moving<.002,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,cpuSubmitMedianMs:[...sampleTimes].sort((a,b)=>a-b)[Math.floor(sampleTimes.length/2)]});
     if(moving>.002)wake();
   }
-  function wake(){if(!raf&&visible&&!paused&&!document.hidden)raf=requestAnimationFrame(frame);}
+  function wake(){if(ready&&!raf&&visible&&!paused&&!document.hidden)raf=requestAnimationFrame(frame);}
   function reset(){pendingDrag=null;drag=null;hovered=-1;vinyl.root.visible=false;spinSpeed=0;notified=false;table.lid.rotation.x=table.lidOpen;table.arm.rotation.y=0;table.arm.rotation.x=0;table.halo.material.opacity=.08;setState('idle');}
   new ResizeObserver(resize).observe(host);
   new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;if(!visible){cancelAnimationFrame(raf);raf=0;if(['dragging','settling','closing','spinning'].includes(state))reset();}else wake();},{threshold:0}).observe(host);
   document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;if(['dragging','settling','closing','spinning'].includes(state))reset();}else wake();});
-  setState('idle');
+  // Upload and compile before the collection enters the viewport, including the
+  // currently hidden playback disc and the shadow pass's program variants.
+  resize();await Promise.all(loads);host.dataset.phase='warming';
+  stage('textures');
+  const allTextures=new Set();scene.traverse(object=>{for(const material of [object.material].flat().filter(Boolean))for(const value of Object.values(material))if(value?.isTexture)allTextures.add(value);});
+  for(const t of allTextures){renderer.initTexture(t);await yieldToBrowser();}
+  const depth=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,side:THREE.BackSide});
+  const shadowScene=new THREE.Scene();scene.traverse(object=>{if(!object.isMesh||!object.castShadow)return;object.customDepthMaterial=depth;const clone=object.clone(false);clone.material=depth;shadowScene.add(clone);});
+  host.dataset.parallelCompile=String(renderer.extensions.has('KHR_parallel_shader_compile'));
+  stage('shaders');
+  await renderer.compileAsync(scene,camera);await yieldToBrowser();
+  const shadowCompileTarget=new THREE.WebGLRenderTarget(1,1);renderer.setRenderTarget(shadowCompileTarget);
+  await renderer.compileAsync(shadowScene,camera,scene);await yieldToBrowser();
+  renderer.setRenderTarget(null);shadowCompileTarget.dispose();
+  const warmStart=performance.now();
+  stage('warm-render');
+  // Use the actual output format; a linear offscreen target would compile a
+  // second set of shaders and reintroduce the same blocking driver work.
+  vinyl.root.visible=true;renderer.render(scene,camera);vinyl.root.visible=false;
+  host.dataset.warmRenderCpuMs=(performance.now()-warmStart).toFixed(1);
+  host.dataset.preparationMs=(performance.now()-preparationStarted).toFixed(1);
+  await yieldToBrowser();ready=true;host.dataset.phase='ready';setState('idle');resize();
+  stage('ready');
   return {select,place,cancel,reset,get available(){return graphicsAvailable;},get state(){return state;},getRect(i=active){return bounds(crate.sleeves[i].mesh);},light(x,y){targetLight.set(-4+x*1.3,9-y*.4,5+x*.4);wake();},lighting(value){if(value!==illumination){illumination=value;wake();}},reduce(value){isReduced=value;wake();},pause(){paused=true;cancelAnimationFrame(raf);raf=0;reset();},resume(){paused=!graphicsAvailable;resize();wake();}};
 }

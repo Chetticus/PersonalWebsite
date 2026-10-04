@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { records } from './content.js';
+import { batchStaticMeshes } from './mesh-batching.js';
 
 // Our modern risq/cratedigger adaptation: five low panels, thin box sleeves,
 // staggered base positions, and selected/pushed/pulled poses.
@@ -20,5 +21,6 @@ export function createCrateModel(textures,woodTexture){
     const highlight=new THREE.Mesh(new THREE.BoxGeometry(5.48,.018,.037),new THREE.MeshBasicMaterial({color:0xf4dcb0,transparent:true,opacity:0,depthWrite:false}));highlight.position.y=2.75;pivot.add(highlight);
     sleeves.push({pivot,base,mesh,proxy,disc,highlight});
   });
+  batchStaticMeshes(root);
   return {root,sleeves};
 }
