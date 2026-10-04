@@ -13,17 +13,14 @@
   <nav id="record-index" aria-label="Record index" hidden></nav>
   <main id="home">
     <section id="introduction" aria-label="A few parts of my world">
-      <div class="introduction-line" aria-hidden="true"><span id="line-progress"></span></div>
-      <article class="checkpoint checkpoint-left" id="checkpoint-1"><span class="checkpoint-marker" aria-hidden="true"></span><div class="checkpoint-content"><figure class="portrait"><div class="portrait-surface" id="portrait-surface"><img class="portrait-image" alt="" /></div><figcaption id="portrait-caption"></figcaption></figure><h2 tabindex="-1"></h2><p></p></div></article>
-      <article class="checkpoint checkpoint-right" id="checkpoint-2"><span class="checkpoint-marker" aria-hidden="true"></span><div class="checkpoint-content"><h2></h2><p></p><svg class="building-sketch" viewBox="0 0 390 120" fill="none" aria-hidden="true"><path d="M2 97H88V59H164V20H280V96H382M88 59L121 26H244M164 20L198 4H313V80L280 96M280 20L313 4"/><circle cx="88" cy="97" r="4"/><circle cx="164" cy="59" r="4"/><circle cx="280" cy="20" r="4"/></svg></div></article>
-      <article class="checkpoint checkpoint-left" id="checkpoint-3"><span class="checkpoint-marker" aria-hidden="true"></span><div class="checkpoint-content"><h2></h2><p></p><a class="collection-invitation" href="#collection">A few parts of my world ↓</a></div></article>
-      <span class="line-end" aria-hidden="true"></span>
+      <div class="biography"><figure class="portrait"><div class="portrait-surface" id="portrait-surface"><img class="portrait-image" alt="" /></div><figcaption id="portrait-caption"></figcaption></figure><div class="biography-copy"><h1>Hi, I’m Nam.</h1><p class="biography-lead"></p><div id="biography-background"></div><a class="collection-invitation" href="#collection">Explore my collection ↓</a></div></div>
     </section>
 
     <section id="collection" class="listening-section" aria-labelledby="collection-title">
-      <div class="collection-heading"><h2 id="collection-title">Find a connection.</h2><p>Click once to explore. Double-click or drag to play.</p></div>
-      <div id="collection-scene" class="listening-scene" aria-label="Turntable on the left and eight section records on the right. Click once to select a record; double-click or drag it to the turntable to open it."><div class="scene-hits"></div><div class="fallback-scene"><p>The 3D scene is unavailable. Select a story from the collection below.</p></div></div>
-      <div class="collection-bottom"><p id="collection-status" class="scene-status" role="status"></p><div class="record-info"><div><h3 id="active-title">Vinyl &amp; Sound</h3><p id="active-description"></p></div><button id="place-record" class="place-action">Play selected record <span>↗</span></button></div></div>
+      <div class="collection-heading"><h2 id="collection-title">My collection.</h2><p>Click to discover a record. Click it again to play.</p></div>
+      <div class="record-info" aria-live="polite"><div><h3 id="active-title"></h3><p id="active-description"></p></div><button id="place-record" class="place-action">Play record <span>↗</span></button></div>
+      <div id="collection-scene" class="listening-scene" aria-label="Hover to lift a sleeve. Click once for its description above the crate, then click the same sleeve again to play. Dragging to the turntable is also available."><div class="scene-hits"></div><div class="fallback-scene"><p>The 3D scene is unavailable. Select a story from the collection below.</p></div></div>
+      <div class="collection-bottom"><p id="collection-status" class="scene-status" role="status"></p></div>
       <div id="record-list" class="record-list" aria-label="All eight sections"></div>
       <nav class="collection-nav" aria-label="Collection navigation"><a href="#introduction">About me</a><button id="index-toggle" aria-expanded="false" aria-controls="record-index">Index</button><a href="/resume.html" target="_blank" rel="noopener">Résumé</a><button id="motion-toggle" aria-pressed="false">Reduce motion</button></nav>
     </section>

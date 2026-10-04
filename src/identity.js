@@ -1,4 +1,4 @@
-// Replace this one source to update the sleeve, disc label, and introduction portrait.
+// Replace this one source to update the biography portrait.
 export const portrait = {
   src: '/portrait-placeholder.svg',
   alt: 'Replaceable portrait placeholder for Nguyen Hai Nam. No photograph supplied.',

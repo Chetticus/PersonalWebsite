@@ -5,7 +5,7 @@ import { portrait,introduction } from './identity.js';
 import { artURL } from './artwork.js';
 import { createListeningScene } from './scene.js';
 import { detailHTML } from './detail.js';
-import { MOTION,clamp,ease,LightingReveal } from './motion.js';
+import { MOTION,LightingReveal } from './motion.js';
 
 const $=s=>document.querySelector(s);
 const home=$('#home'),detail=$('#detail'),index=$('#record-index'),media=matchMedia('(prefers-reduced-motion: reduce)');
@@ -16,7 +16,8 @@ history.scrollRestoration='manual';
 document.documentElement.classList.toggle('reduced-motion',reduced);
 document.querySelectorAll('.portrait-image').forEach(img=>{img.src=portrait.src;img.alt=portrait.alt;});
 $('#portrait-caption').textContent=portrait.placeholder?'Portrait placeholder':'';
-introduction.forEach((copy,i)=>{const el=$(`#checkpoint-${i+1}`);el.querySelector('h2').textContent=copy.title;el.querySelector('p').textContent=copy.text;});
+$('.biography-lead').textContent=introduction[0].text;
+$('#biography-background').innerHTML=introduction.slice(1).map(copy=>`<p>${copy.text}</p>`).join('');
 records.forEach((r,i)=>{const img=new Image();img.src=artURL(i);});
 index.innerHTML=records.map((r,i)=>`<a href="#record/${r.id}" data-open="${i}">${r.title}<span>↗</span></a>`).join('');
 $('#record-list').innerHTML=records.map((r,i)=>`<a href="#record/${r.id}" data-open="${i}">${r.title}<span>↗</span></a>`).join('');
@@ -24,14 +25,13 @@ function closeIndex(){index.hidden=true;$('#index-toggle').setAttribute('aria-ex
 $('#index-toggle').onclick=()=>{index.hidden=!index.hidden;$('#index-toggle').setAttribute('aria-expanded',String(!index.hidden));};
 document.addEventListener('pointerdown',e=>{if(!index.hidden&&!index.contains(e.target)&&!$('#index-toggle').contains(e.target))closeIndex();});
 
-function selected(i){active=i;$('#active-title').textContent=records[i].title;$('#active-description').textContent=records[i].short;$('#place-record').setAttribute('aria-label',`Place ${records[i].title} on turntable`);}
+function selected(i){active=i;$('.record-info').classList.add('has-selection');$('#active-title').textContent=records[i].title;$('#active-description').textContent=records[i].short;$('#place-record').setAttribute('aria-label',`Play ${records[i].title} on turntable`);}
 function stateChanged(state,i){
   const button=$('#place-record'),status=$('#collection-status');
   button.disabled=!['idle','returning','fallback'].includes(state);
-  status.textContent=state==='dragging'?'Release over the platter. Escape to cancel.':state==='returning'?'Returning to the sleeve.':state==='settling'?'Settling onto the platter.':state==='spinning'?records[i].title:state==='playing'?`Opening ${records[i].title}…`:'';
+  status.textContent=state==='dragging'?'Release over the platter. Escape to cancel.':state==='returning'?'Returning to the sleeve.':state==='settling'?'Placing the record.':state==='closing'?'Closing the cover.':state==='spinning'?records[i].title:state==='playing'?`Opening ${records[i].title}…`:'';
 }
 collectionScene=createListeningScene($('#collection-scene'),{reduced,onSelect:selected,onState:stateChanged,onComplete:i=>openRecord(i)});
-selected(0);
 $('#place-record').onclick=()=>{if(collectionScene?.available)collectionScene.place(active);else openRecord(active);};
 
 function setReduced(value){reduced=value;document.documentElement.classList.toggle('reduced-motion',value);$('#motion-toggle').setAttribute('aria-pressed',String(value));$('#motion-toggle').textContent=value?'Motion reduced':'Reduce motion';collectionScene?.reduce(value);updateScroll();}
@@ -51,18 +51,6 @@ function updateLighting(now=performance.now()){
 }
 function updateScroll(){
   if(current!==null)return;
-  const intro=$('#introduction'),r=intro.getBoundingClientRect();
-  const progress=clamp((innerHeight*.68-r.top-90)/(intro.offsetHeight-170));
-  $('#line-progress').style.transform=`scaleY(${reduced?1:progress})`;
-  document.querySelectorAll('.checkpoint').forEach(el=>{
-    const content=el.querySelector('.checkpoint-content');
-    const amount=reduced||el.contains(document.activeElement)?1:ease((innerHeight*.94-content.getBoundingClientRect().top)/(innerHeight*.46));
-    const revealed=Math.max(Number(el.dataset.reveal||0),amount);
-    el.dataset.reveal=String(revealed);
-    el.style.setProperty('--checkpoint-opacity',String(revealed));
-    el.style.setProperty('--checkpoint-offset',`${24*(1-revealed)}px`);
-    if(revealed===1)el.classList.add('revealed');
-  });
   if(!lightFrame)updateLighting();
   if(!inRevealZone()){cancelLighting();restoreLit=false;}
 }
