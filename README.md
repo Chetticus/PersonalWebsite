@@ -7,18 +7,18 @@ npm install
 npm run dev -- --port 5173
 ```
 
-Open http://127.0.0.1:5173 on a desktop browser (1024px minimum; 1280–1920px recommended). `npm run build` creates `dist/`; `npm run preview -- --port 4173` serves that production build at http://127.0.0.1:4173. The finished preview was left running on port 4173. Open it in a full-width browser if the app's side panel is narrower than 1024px.
+Open http://127.0.0.1:5173 on a desktop browser (1024px minimum; 1280–1920px recommended). `npm run build` creates `dist/`; `npm run preview -- --port 4174` serves that production build at http://127.0.0.1:4174. The finished preview was left running on port 4174. Open it in a full-width browser if the app's side panel is narrower than 1024px.
 
 ## Replace content
-- **Portrait and introduction:** set the image source/alt/placeholder flag in `src/identity.js`. That file also contains the draft biography paragraphs.
+- **Portrait and introduction:** set the image source/alt/placeholder flag in `src/identity.js`. That file composes the supplied biography from `src/projects.js`; the longer account expands under “More about me.”
 - **Sleeves:** edit `public/sleeves/*.svg`. Their titles are editable vector text. `src/artwork.js` is the optional generator; `node scripts/generate-art.mjs` overwrites the eight SVGs.
-- **Narratives:** `src/content.js` holds descriptions, status labels, section introductions, stories and media descriptions. Replace the `.media-placeholder` output in `src/detail.js` when real photographs arrive.
+- **Narratives:** `src/content.js` maps the eight records to the full supplied stories in `src/projects.js`. Each story contains paragraphs, supplied links, and a media list. To replace a mock image, update its `src`, `alt`, and `caption`, and set `mock:false`. Individual IDs such as `vex-01` stay stable. `src/detail.js` renders galleries between paragraphs. Run `node scripts/check-content.mjs`; see `CONTENT_SOURCES.md` for counts, provenance, and pending links.
 - **Résumé:** `public/resume.html` is a contact-redacted selected résumé summary based on the supplied document. Replace with an approved final document later. Source exports remain outside the public folder and build.
 
 `AGENTS.md`, `ART_DIRECTION.md`, `MOTION.md`, `THIRD_PARTY_NOTICES.md`, and `QA.md` explain scope, design, behavior, attribution and validation.
 
 `src/motion.js` centralizes timing. `node scripts/check-motion.mjs` verifies the separate 500ms light delay, fade duration, cancellation, and reentry. Add `?graphics=off` to exercise the HTML fallback. The requested tkex reference has no identified reuse license, so the turntable is original geometry informed by its component layout; no source, models, or audio were copied.
 
-The introduction uses native scrolling. The biography comes before the collection. The 3D collection uses one enlarged turntable-and-crate composition. Playback places the disc, closes the acrylic cover, starts spinning, then opens the section.
+The introduction uses native scrolling. The biography comes before the collection. The 3D collection uses one compact turntable-and-crate composition. Playback places the disc, closes the acrylic cover, starts spinning, then opens the section.
 
 The scene prepares asynchronously after the biography paints, warming textures/shaders before browsing. `?profile=1` enables local long-task and scroll-gap diagnostics in the root element's `data-performance`; scene timing/draw metrics are on `#collection-scene`. These measurements are never transmitted. `node scripts/check-batching.mjs` verifies that geometry batching preserves transforms, shadows, and animated groups.

@@ -13,7 +13,7 @@ A personal listening ritual: lift a record, place it, let it turn, then follow t
 - Shared surface: a dark walnut desk receives the objects’ shadows and fades at its perimeter, keeping the composition quiet. The exposed turntable is scaled to 0.78 and positioned at x=-3.5; movable discs match its scale.
 - Crate arrangement: square 5.5-unit sleeves fill most of the 6.5-unit crate width. Side walls are 2.1 units tall (previously 1.2); the front remains low. The crate scale is 0.75. Eight sleeves span its usable depth with 0.575-unit gaps, a subtle stagger, and fixed hit areas.
 - Sleeve identity: eight original compositions use editorial typography, a record cutout, paired letterforms, community connections, blueprint lines, research orbits, stepped forms, a globe, and topographic paths. All section titles remain clear; these are conceptual illustrations, not claimed project evidence.
-- Content pages inherit the sleeve accent, with a restrained header wash, sticky story navigation, résumé summaries, clearly labeled reflection prompts, and an honest media placeholder. No invented quotations, photos, demonstrations, or outcomes.
+- Content pages inherit the sleeve accent, with a restrained header wash, sticky story navigation, full supplied narratives, and unboxed two-/three-column galleries placed between paragraphs. Original SVG mock images use the listening-room palette and are labeled in the image and caption; they are not photographs or project evidence. The long biography expands through a native “More about me” disclosure. No invented quotations, photos, demonstrations, or outcomes.
 
 - The opening has no top bar, gate, or placement prompt. Its hierarchy stays focused on the portrait and introduction.
 
