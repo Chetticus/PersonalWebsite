@@ -34,3 +34,20 @@ html{scroll-padding-top:30px}body{overflow-x:hidden}.listening-section{position:
 #collection .listening-scene{top:26%;height:62%}.collection-bottom{bottom:8%;display:block}.collection-heading{top:7%}
 @media(max-width:1150px){#introduction{padding:85px 7%}.biography-copy h1{font-size:54px}#collection .record-info{left:56%;right:5%}#collection .record-info h3{font-size:23px}#collection .record-info{gap:12px}}
 @media(prefers-reduced-motion:reduce){.record-info{transition:none!important}}
+
+/* Narrative pages keep the listening-room palette, with unboxed image sequences. */
+.content-provenance{max-width:920px;color:var(--muted);font-size:12px;line-height:1.8;margin:-20px 0 62px}
+.story-copy>p{font-size:17px;line-height:1.9;color:#c7bcae;max-width:72ch;margin:0 0 24px}
+.story-links{display:flex;flex-wrap:wrap;gap:12px 25px;margin:-3px 0 26px;font-size:13px;color:var(--accent)}
+.story-links a{border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent);padding-bottom:5px}.story-links a span{padding-left:12px}
+.story-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 18px;margin:34px 0 38px}
+.story-gallery.gallery-1{grid-template-columns:1fr}.story-gallery.gallery-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.story-media{min-width:0;margin:0}.story-media img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;background:#211c17}
+.story-media figcaption{font-size:12px;line-height:1.6;color:#b2a593;margin-top:10px}.story-media figcaption span{display:block;color:#897e6f;font-size:11px;margin-top:3px}
+.story-note{font-size:12px!important;line-height:1.8!important;color:#9e907f!important;margin-top:24px;max-width:72ch}
+.biography{align-items:start}.portrait{position:sticky;top:65px}
+.biography-more{margin:25px 0 0}.biography-more summary{cursor:pointer;font-size:14px;color:#c8b68b;padding:8px 0;width:fit-content}
+.biography-more[open] summary{margin-bottom:22px}.biography-more .story-gallery{margin-bottom:0}.biography-more .story-media figcaption{font-size:11px}
+@media(max-width:1150px){.story-layout{grid-template-columns:24% 1fr;gap:6%}.story-layout>aside>a{max-width:170px}.story-gallery.gallery-3{grid-template-columns:repeat(2,minmax(0,1fr))}.story-copy>p{font-size:16px}}
+.biography-more summary:focus-visible{outline:2px solid #ead4a4;outline-offset:7px}
+.story-gallery.gallery-2>.story-media:last-child:nth-child(odd){grid-column:1/-1}

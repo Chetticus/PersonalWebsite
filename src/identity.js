@@ -1,13 +1,18 @@
-// Replace this one source to update the biography portrait.
+import { biography } from './projects.js';
+
+// Replace the portrait here; no photograph of Nam has been supplied.
 export const portrait = {
   src: '/portrait-placeholder.svg',
   alt: 'Replaceable portrait placeholder for Nguyen Hai Nam. No photograph supplied.',
   placeholder: true,
 };
 
-// First-person draft copy for review, grounded in the supplied résumé.
+// The supplied statement leads; the longer autobiographical account expands in place.
+const [lead,...background]=biography.statement.split(' From programming');
 export const introduction = [
-  {title:'Hi, I’m Nam.', text:'I build things, collect records, and explore how technology can bring people closer—to music, to learning, and to one another.'},
-  {title:'An idea is only the beginning.', text:'I like the moment an idea meets the real world. Through robotics and programming, I learn by making, testing, and trying again.'},
-  {title:'The connection matters.', text:'Music reminds me to listen. Teaching and community work remind me who I’m building for. I’m interested in technology that makes learning and connection more accessible.'},
+  {title:'Hi, I’m Hai Nam.',text:lead},
+  {text:'From programming'+background.join(' From programming')},
+  {text:biography.about[0]},
 ];
+export const biographyMore=biography.about.slice(1);
+export const biographyMedia=biography.media;
